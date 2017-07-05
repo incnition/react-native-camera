@@ -42,7 +42,7 @@ function convertNativeProps(props) {
   if (typeof props.captureMode === 'string') {
     newProps.captureMode = Camera.constants.CaptureMode[props.captureMode];
   }
-  
+
   if (typeof props.captureTarget === 'string') {
     newProps.captureTarget = Camera.constants.CaptureTarget[props.captureTarget];
   }
@@ -153,6 +153,7 @@ export default class Camera extends Component {
 
   async componentWillMount() {
     this._addOnBarCodeReadListener()
+    this._addOnFaceRecognizedListener()
 
     let { captureMode } = convertNativeProps({ captureMode: this.props.captureMode })
     let hasVideoAndAudio = this.props.captureAudio && captureMode === Camera.constants.CaptureMode.video
@@ -179,6 +180,17 @@ export default class Camera extends Component {
     }
   }
 
+  _addOnFaceRecognizedListener(props){
+    const { onFaceRecognized } = props || this.props
+    this._removeOnFaceRecognizedListener()
+    if (onFaceRecognized) {
+      this.cameraFaceRecognizedListener = Platform.select({
+        ios: NativeAppEventEmitter.addListener('FaceRecognized', this._onFaceRecognized),
+        // android: DeviceEventEmitter.addListener('CameraBarCodeReadAndroid',  this._onBarCodeRead) // XXX: not implemented yet
+      })
+    }
+  }
+
   _addOnBarCodeReadListener(props) {
     const { onBarCodeRead } = props || this.props
     this._removeOnBarCodeReadListener()
@@ -187,6 +199,12 @@ export default class Camera extends Component {
         ios: NativeAppEventEmitter.addListener('CameraBarCodeRead', this._onBarCodeRead),
         android: DeviceEventEmitter.addListener('CameraBarCodeReadAndroid',  this._onBarCodeRead)
       })
+    }
+  }
+  _removeOnFaceRecognizedListener() {
+    const listener = this.cameraFaceRecognizedListener
+    if (listener) {
+      listener.remove()
     }
   }
   _removeOnBarCodeReadListener() {
@@ -206,6 +224,13 @@ export default class Camera extends Component {
   _onBarCodeRead = (data) => {
     if (this.props.onBarCodeRead) {
       this.props.onBarCodeRead(data)
+    }
+  };
+
+
+  _onFaceRecognized = (data) => {
+    if (this.props.onFaceRecognized) {
+      this.props.onFaceRecognized(data)
     }
   };
 

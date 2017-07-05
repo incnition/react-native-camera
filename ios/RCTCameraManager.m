@@ -15,6 +15,7 @@
 
 @property (strong, nonatomic) RCTSensorOrientationChecker * sensorOrientationChecker;
 @property (assign, nonatomic) NSInteger* flashMode;
+@property (assign, nonatomic) AVCaptureMetadataOutput *metaDataOutput;
 
 @end
 
@@ -35,6 +36,9 @@ RCT_EXPORT_MODULE();
     self.previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:self.session];
     self.previewLayer.needsDisplayOnBoundsChange = YES;
   #endif
+
+//  self.metaDataOutput = [[AVCaptureMetadataOutput alloc] init];
+  
 
   if(!self.camera){
     self.camera = [[RCTCamera alloc] initWithManager:self bridge:self.bridge];
@@ -882,6 +886,29 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection {
 
   for (AVMetadataMachineReadableCodeObject *metadata in metadataObjects) {
+    for (AVMetadataFaceObject *face in metadataObjects) {
+      if ([metadata.type isEqualToString:@"face"]) {
+//        NSLog(@"detected a face with ID: %li", (long)face.faceID);
+//        NSLog(@"Face bounds: %@", NSStringFromCGRect(face.bounds));
+//        NSLog(@"Metadata.type: %@", face.type);
+          
+        NSDictionary *event = @{
+          @"type": face.type,
+          @"bounds": @{
+            @"origin": @{
+              @"x": [NSString stringWithFormat:@"%f", face.bounds.origin.x],
+              @"y": [NSString stringWithFormat:@"%f", face.bounds.origin.y]
+            },
+            @"size": @{
+              @"height": [NSString stringWithFormat:@"%f", face.bounds.size.height],
+              @"width": [NSString stringWithFormat:@"%f", face.bounds.size.width],
+            }
+          }
+        };
+        [self.bridge.eventDispatcher sendAppEventWithName:@"FaceRecognized" body:event];
+      }
+    }
+      
     for (id barcodeType in self.barCodeTypes) {
       if ([metadata.type isEqualToString:barcodeType]) {
         // Transform the meta-data coordinates to screen coords
