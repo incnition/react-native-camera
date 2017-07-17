@@ -38,7 +38,7 @@ RCT_EXPORT_MODULE();
   #endif
 
 //  self.metaDataOutput = [[AVCaptureMetadataOutput alloc] init];
-  
+
 
   if(!self.camera){
     self.camera = [[RCTCamera alloc] initWithManager:self bridge:self.bridge];
@@ -888,16 +888,17 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
   for (AVMetadataMachineReadableCodeObject *metadata in metadataObjects) {
     for (AVMetadataFaceObject *face in metadataObjects) {
       if ([metadata.type isEqualToString:@"face"]) {
-//        NSLog(@"detected a face with ID: %li", (long)face.faceID);
-//        NSLog(@"Face bounds: %@", NSStringFromCGRect(face.bounds));
-//        NSLog(@"Metadata.type: %@", face.type);
-          
+        // NSLog(@"detected a face with ID: %li", (long)face.faceID);
+        // NSLog(@"Face bounds: %@", NSStringFromCGRect(face.bounds));
+        // NSLog(@"Metadata.type: %@", face.type);
+
+        // I'm swapping X and Y because for some reason, these are switched on iOS?
         NSDictionary *event = @{
           @"type": face.type,
           @"bounds": @{
             @"origin": @{
-              @"x": [NSString stringWithFormat:@"%f", face.bounds.origin.x],
-              @"y": [NSString stringWithFormat:@"%f", face.bounds.origin.y]
+              @"x": [NSString stringWithFormat:@"%f", face.bounds.origin.y],
+              @"y": [NSString stringWithFormat:@"%f", face.bounds.origin.x]
             },
             @"size": @{
               @"height": [NSString stringWithFormat:@"%f", face.bounds.size.height],
@@ -908,7 +909,7 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
         [self.bridge.eventDispatcher sendAppEventWithName:@"FaceRecognized" body:event];
       }
     }
-      
+
     for (id barcodeType in self.barCodeTypes) {
       if ([metadata.type isEqualToString:barcodeType]) {
         // Transform the meta-data coordinates to screen coords
