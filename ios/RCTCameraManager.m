@@ -889,7 +889,7 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
     for (AVMetadataFaceObject *face in metadataObjects) {
       if ([metadata.type isEqualToString:@"face"]) {
         // NSLog(@"detected a face with ID: %li", (long)face.faceID);
-        // NSLog(@"Face bounds: %@", NSStringFromCGRect(face.bounds));
+        NSLog(@"Face bounds: %@", NSStringFromCGRect(face.bounds));
         // NSLog(@"Metadata.type: %@", face.type);
 
         // I'm swapping X and Y because for some reason, these are switched on iOS?
